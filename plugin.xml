@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.importWizards">
+      <category
+            id="stmcat.importWizards.sampleCategory"
+            name="EtherCAT for STM32">
+      </category>
+      <wizard
+            id="stmcat.importWizards.ImportWizard"
+            name="Import object list XLSX"
+            class="stmcat.importWizards.ImportWizard"
+            category="stmcat.importWizards.sampleCategory"
+            icon="icons/sample.png">
+         <description>
+            Import a file from the local file system into the workspace.
+         </description>
+      </wizard>
+   </extension>
+
+</plugin>
