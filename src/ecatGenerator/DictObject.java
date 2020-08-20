@@ -43,18 +43,11 @@ public class DictObject {
 		//check "default" when ARRAY[0]
 		if (eObjectCode==ObjectCode.ARRAY)
 		{
-			try{
-			     int i = Integer.parseInt(entry.sDefault);
-			     if (i<0)
+			if (entry.lDefault<0 )
 			     {
 						SlaveGenerator.printError(row, "Wrong array length.");
-						entry.sDefault = "1";
+						entry.lDefault = 1L;
 			     }
-			}
-			catch(NumberFormatException e){
-				SlaveGenerator.printError(row, "Wrong array length.");
-			    entry.sDefault = "1";
-			}
 		}
 		lEntry.add(entry);
 	}

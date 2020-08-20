@@ -431,7 +431,7 @@ void ESC_init (const esc_cfg_t * config)
    {
 	   value = lan9252_read_32(0x64);
    }
-	printf("ByteOrder Passed:");
+	printf("ByteOrder Passed.\n");
 
    /* Reset the ecat core here due to evb-lan9252-digio not having any GPIO
     * for that purpose.

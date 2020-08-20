@@ -8,21 +8,31 @@ public class DictEntry {
 	public DataType dataType;
 	public String sName;
 	public String sVarName;
-	public String sDefault;
+	public Long lDefault;
 	public Access access;
 	public PdoDir pdoDir;
 	public String sDescription;
+	public DictObject pdoRefObj;//Only used by 0x1A00 and 0x1600
+	public DictEntry pdoRefEntry;//Only used by 0x1A00 and 0x1600
 	
-	DictEntry(Long lSI_, DataType dataType_, String sName_, String sVarName_, String sDefault_, Access access_, PdoDir pdoDir_, String sDesc_)
+	DictEntry(Long lSI_, DataType dataType_, String sName_, String sVarName_, Long lDefault_, Access access_, PdoDir pdoDir_, String sDesc_)
 	{
 		lSI = lSI_;
 		dataType = dataType_;
 		sName = sName_;
 		sVarName = sVarName_;
-		sDefault = sDefault_;
+		lDefault = lDefault_;
 		access = access_;
 		pdoDir = pdoDir_;
 		sDescription = sDesc_;
+		pdoRefObj = null;
+		pdoRefEntry = null;
+	}
+	
+	public void pointTo(DictObject obj_, DictEntry entry_)
+	{
+		pdoRefObj = obj_;
+		pdoRefEntry = entry_;
 	}
 	
     
@@ -45,7 +55,15 @@ public class DictEntry {
 		sName = SlaveReader.getStringCellValue(cell);
 		sVarName = sName.replaceAll("\\s*", "");
 		cell = row.getCell(6);
-		sDefault = SlaveReader.getStringCellValue(cell);
+		if (cell==null)
+			lDefault = 0L;
+		else
+			lDefault = SlaveReader.getLongCellValue(cell);
+		if (lDefault == Long.MIN_VALUE)
+		{
+			lDefault = 0L;
+			//SlaveGenerator.consoleStream.println("Warning: Only integer 'Default' value is accepted, or 0 would be filled.");
+		}
 		try	{
 			cell = row.getCell(11);
 			access = Access.parse(SlaveReader.getStringCellValue(cell));
@@ -70,8 +88,5 @@ public class DictEntry {
 		cell = row.getCell(14);
 		sDescription = SlaveReader.getStringCellValue(cell);
     	
-		//Check Default
-		if (sDefault.isEmpty())
-			sDefault = "0";
     }
 }

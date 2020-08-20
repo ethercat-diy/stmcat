@@ -86,8 +86,7 @@ const _objectlist SDOobjects[] =
   {0x1C00, OTYPE_ARRAY, 4, 0, acName1C00, SDO1C00},
   {0x1C12, OTYPE_ARRAY, 1, 0, acName1C12, SDO1C12},
   {0x1C13, OTYPE_ARRAY, 1, 0, acName1C13, SDO1C13},
-%(Object List)
-  {0xffff, 0xff, 0xff, 0xff, NULL, NULL}
+%(Object List)  {0xffff, 0xff, 0xff, 0xff, NULL, NULL}
 };
 
 

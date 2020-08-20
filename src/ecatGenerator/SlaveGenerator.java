@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -11,6 +12,12 @@ import java.util.Map;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.Element;
+import org.dom4j.io.OutputFormat;
+import org.dom4j.io.SAXReader;
+import org.dom4j.io.XMLWriter;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -36,18 +43,27 @@ public class SlaveGenerator {
 	MessageConsole console = null;
 	public static MessageConsoleStream consoleStream = null;
 	IConsoleManager consoleManager = null;
-	final String CONSOLE_NAME = "Console";
+	final String CONSOLE_NAME = "STM CAT Console";
 	
 	private void initConsole() {
 		consoleManager = ConsolePlugin.getDefault().getConsoleManager();
 		IConsole[] consoles = consoleManager.getConsoles();
 		if (consoles.length>0)
-			console = (MessageConsole)consoles[0];
-		else {
+		{
+			for (IConsole iconsole: consoles)
+				if (iconsole.getName()==CONSOLE_NAME)
+				{
+					console = (MessageConsole)iconsole;
+					break;
+				}
+		}
+		if (console == null)
+		{
 			console = new MessageConsole(CONSOLE_NAME,null);
 			consoleManager.addConsoles(new IConsole[] {console} );
 		}
 		consoleStream = console.newMessageStream();
+		consoleManager.showConsoleView(console);
 	}
 	
 	public SlaveGenerator(InputStream inputStream, IProject prj, Shell shell)
@@ -169,7 +185,8 @@ public class SlaveGenerator {
 			XSSFSheet mySheet = myWorkBook.getSheetAt(0);
 			SlaveReader slaveReader = new SlaveReader(mySheet);
 			myWorkBook.close();
-			
+
+			consoleStream.println("Generating C files...");
 			IFolder folder = initOutput(prj);
 			//Generate slave_objectlist.c
 			String str = readTemplate("/templates/slave_objectlist.tmp");
@@ -177,10 +194,19 @@ public class SlaveGenerator {
 			str = format(str,map);
 			writeFile(folder, "slave_objectlist.c", str);
 
+			//Generate utypes.h
 			str = readTemplate("/templates/utypes.tmp");
 			str = str.replace("%(Objects)", slaveReader.generateUserObjects());
 			writeFile(folder, "utypes.h", str);
 			
+			//Generate options.h
+			str = readTemplate("/templates/options.tmp");
+			str = format(str,map);
+			writeFile(folder, "options.h", str);
+			
+			
+			
+			//Copy all the other files
 			copyFile(folder,"cc.h", "/templates/cc.h");
 			copyFile(folder,"ecat_slv.c", "/templates/ecat_slv.c");
 			copyFile(folder,"ecat_slv.h", "/templates/ecat_slv.h");
@@ -196,11 +222,32 @@ public class SlaveGenerator {
 			copyFile(folder,"esc_hw.c", "/templates/esc_hw.c");
 			copyFile(folder,"esc.c", "/templates/esc.c");
 			copyFile(folder,"esc.h", "/templates/esc.h");
-			copyFile(folder,"options.h", "/templates/options.h");
-		} catch (IOException e) {
+//			copyFile(folder,"options.h", "/templates/options.h");
+			
+			//Generate XML file
+			SlaveGenerator.consoleStream.println("Generating ESI XML file...");
+			SAXReader sax = new SAXReader();
+			Bundle bundle = Activator.getDefault().getBundle();
+			URL url = bundle.getResource("/templates/SSC-Template.xml");
+			InputStream isTemplate = FileLocator.toFileURL(url).openStream();
+			Document doc = sax.read(isTemplate);
+			Element root = doc.getRootElement();
+			slaveReader.generateXML(root);
+			IFile ifile = folder.getFile(slaveReader.sDeviceName.replaceAll("\\s*", "")+".xml");
+			File fOutput=new File(ifile.getLocation().toOSString());
+			OutputStream os = new FileOutputStream(fOutput);
+			OutputFormat format = OutputFormat.createPrettyPrint();
+			format.setEncoding("utf-8");
+			XMLWriter xw = new XMLWriter(os,format);
+			xw.write(doc);
+			xw.flush();
+			xw.close();
+			ifile.createLink(fOutput.toURI(), 1, null);
+		} catch (IOException | DocumentException | CoreException e) {
 			e.printStackTrace();
 		}
 		
+		SlaveGenerator.consoleStream.println("Slave device generation finished.");
 		
 //		MessageBox msg = new MessageBox(parentShell);
 //		msg.setMessage(str);

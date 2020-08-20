@@ -35,10 +35,10 @@
 #define SM3_smc          0x20
 #define SM3_act          1
 
-#define MAX_RXPDO_SIZE   42
-#define MAX_TXPDO_SIZE   42
+#define MAX_RXPDO_SIZE   %(nRxPdoByteSize)
+#define MAX_TXPDO_SIZE   %(nTxPdoByteSize)
 
-#define MAX_MAPPINGS_SM2 2
-#define MAX_MAPPINGS_SM3 1
+#define MAX_MAPPINGS_SM2 %(nRxPdo)
+#define MAX_MAPPINGS_SM3 %(nTxPdo)
 
 #endif /* __ECAT_OPTIONS_H__ */
