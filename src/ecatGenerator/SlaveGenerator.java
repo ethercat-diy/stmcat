@@ -83,8 +83,16 @@ public class SlaveGenerator {
 	private String readTemplate(String filename)
 	{
 		String str = "";
+		consoleStream.println("Finding plugin files...");
 		Bundle bundle = Activator.getDefault().getBundle();
 		URL url = bundle.getResource(filename);
+		consoleStream.println("Reading plugin files...");
+		try {
+			consoleStream.flush();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		try {
 			InputStream isTemplate = FileLocator.toFileURL(url).openStream();
 		    int length = isTemplate.available();
@@ -92,8 +100,10 @@ public class SlaveGenerator {
 		    isTemplate.read(bytes);
 		    isTemplate.close();
 		    str =new String(bytes);
+			consoleStream.println("Plugin files has been read.");
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
+			consoleStream.println("Could not locate plugin files.");
 			e1.printStackTrace();
 		}
 		return str;
@@ -124,6 +134,7 @@ public class SlaveGenerator {
 		} catch ( IOException | CoreException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			consoleStream.println("Could not write source files.");
 		}
 		return ifile;
 	}
@@ -147,15 +158,19 @@ public class SlaveGenerator {
 	
 	private IFolder initOutput(IProject prj)
 	{
+		consoleStream.println("Generating soes folder...");
+
 		IFolder folder = prj.getFolder("/soes");
 		try {
 			if (folder.exists())
 				folder.delete(true, null);
 			folder = prj.getFolder("/soes");
 			folder.create(true, true, null);
+			consoleStream.println("SOES folder has be created.");
 		} catch (CoreException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			consoleStream.println("SOES folder cannot be created.");
 		}
 		return folder;
 	}
